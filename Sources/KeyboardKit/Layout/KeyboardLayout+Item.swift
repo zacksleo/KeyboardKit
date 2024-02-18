@@ -3,7 +3,7 @@
 //  KeyboardKit
 //
 //  Created by Daniel Saidi on 2021-02-03.
-//  Copyright © 2021-2023 Daniel Saidi. All rights reserved.
+//  Copyright © 2021-2024 Daniel Saidi. All rights reserved.
 //
 
 import CoreGraphics
@@ -13,9 +13,9 @@ public extension KeyboardLayout {
     
     /**
      A keyboard layout items specifies an action, a size and
-     edge insets for a key on a layout-based keyboard.
+     optional insets for a key on a layout-based keyboard.
      */
-    struct Item: Equatable, KeyboardLayoutRowItem {
+    struct Item: Equatable, KeyboardLayoutRowIdentifiable {
         
         /**
          Create a new layout item.
@@ -23,15 +23,18 @@ public extension KeyboardLayout {
          - Parameters:
            - action: The keyboard action to use.
            - size: The layout size to use.
+           - alignment: The content alignment, by default `.center`.
            - edgeInsets: The edge insets to apply, by default none.
          */
         public init(
             action: KeyboardAction,
             size: ItemSize,
+            alignment: Alignment = .center,
             edgeInsets: EdgeInsets = .init()
         ) {
             self.action = action
             self.size = size
+            self.alignment = alignment
             self.edgeInsets = edgeInsets
         }
         
@@ -41,10 +44,13 @@ public extension KeyboardLayout {
         /// The layout size to use.
         public var size: ItemSize
         
+        /// The content alignment to apply.
+        public var alignment: Alignment
+        
         /// The edge insets to apply.
         public var edgeInsets: EdgeInsets
         
-        /// The row ID the is used to identify the item in a row.
+        /// The ID used to identify the item in a row.
         public var rowId: KeyboardAction { action }
     }
 }

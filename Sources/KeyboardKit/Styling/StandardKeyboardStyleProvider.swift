@@ -3,7 +3,7 @@
 //  KeyboardKit
 //
 //  Created by Daniel Saidi on 2021-01-10.
-//  Copyright © 2021-2023 Daniel Saidi. All rights reserved.
+//  Copyright © 2021-2024 Daniel Saidi. All rights reserved.
 //
 
 import SwiftUI
@@ -45,13 +45,25 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
      - Parameters:
        - keyboardContext: The keyboard context to use.
      */
-    public init(keyboardContext: KeyboardContext) {
+    public init(
+        keyboardContext: KeyboardContext
+    ) {
         self.keyboardContext = keyboardContext
     }
 
 
     /// The keyboard context to use.
     public let keyboardContext: KeyboardContext
+    
+    
+    // MARK: - iPad Pro Temp Workaround
+    
+    static var iPadProRenderingModeActive = false
+    
+    /// Whether or not the style is for an iPad Pro.
+    public var iPadProRenderingModeActive: Bool {
+        Self.iPadProRenderingModeActive
+    }
 
 
     // MARK: - Keyboard
@@ -62,19 +74,16 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
     }
 
     /// The foreground color to apply to the entire keyboard.
-    open var foregroundColor: Color? { nil }
+    open var foregroundColor: Color? {
+        nil
+    }
 
     /// The edge insets to apply to the entire keyboard.
     open var keyboardEdgeInsets: EdgeInsets {
         switch keyboardContext.deviceType {
-        case .pad: return .init(top: 0, leading: 0, bottom: 4, trailing: 0)
-        case .phone:
-            if keyboardContext.screenSize.isEqual(to: .iPhoneProMaxScreenPortrait, withTolerance: 10) {
-                return .init(top: 0, leading: 0, bottom: 0, trailing: 0)
-            } else {
-                return .init(top: 0, leading: 0, bottom: -2, trailing: 0)
-            }
-        default: return .init(top: 0, leading: 0, bottom: 0, trailing: 0)
+        case .pad: .init(bottom: 4)
+        case .phone: isProMaxPhone ? .zero : .init(bottom: -2)
+        default: .zero
         }
     }
 
@@ -86,33 +95,41 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
 
     // MARK: - Buttons
     
+    open func buttonContentInsets(for action: KeyboardAction) -> EdgeInsets {
+        if let override = buttonContentInsetsOverride(for: action) { return override }
+        return .init(horizontal: 3, vertical: 3)
+    }
+    
     /// The button content bottom margin for an action.
     open func buttonContentBottomMargin(for action: KeyboardAction) -> CGFloat {
         switch action {
-        case .character(let char): return buttonContentBottomMargin(for: char)
-        default: return 0
+        case .character(let char): buttonContentBottomMargin(for: char)
+        default: 0
         }
     }
     
     /// The button content bottom margin for a character.
     open func buttonContentBottomMargin(for char: String) -> CGFloat {
         switch char {
-        case "-", "/", ":", ";", "@": return 3
-        case "(", ")": return 4
-        default: return 0
+        case "-", "/", ":", ";", "@", ",": 3
+        case "(", ")": 4
+        default: 0
         }
     }
 
     /// The button image to use for a certain action.
     open func buttonImage(for action: KeyboardAction) -> Image? {
-        action.standardButtonImage(for: keyboardContext)
+        if iPadProRenderingModeActive, let image = buttonImagePadProOverride(for: action) {
+            return image
+        }
+        return action.standardButtonImage(for: keyboardContext)
     }
 
     /// The content scale factor to use for a certain action.
     open func buttonImageScaleFactor(for action: KeyboardAction) -> CGFloat {
         switch keyboardContext.deviceType {
-        case .pad: return 1.2
-        default: return 1
+        case .pad: 1.2
+        default: 1
         }
     }
 
@@ -130,7 +147,8 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
 
     /// The button text to use for a certain action, if any.
     open func buttonText(for action: KeyboardAction) -> String? {
-        action.standardButtonText(for: keyboardContext)
+        if let override = buttonTextPadOverride(for: action) { return override }
+        return action.standardButtonText(for: keyboardContext)
     }
 
 
@@ -163,7 +181,7 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
 
     /// The style to apply to ``AutocompleteToolbar`` views.
     public var autocompleteToolbarStyle: KeyboardStyle.AutocompleteToolbar {
-        return .standard
+        .standard
     }
 
 
@@ -171,6 +189,9 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
 
     /// The background color to use for a certain action.
     open func buttonBackgroundColor(for action: KeyboardAction, isPressed: Bool) -> Color {
+        if iPadProRenderingModeActive, let color = buttonColorPadProOverride(for: action) {
+            return color
+        }
         let context = keyboardContext
         let color = action.buttonBackgroundColor(for: context, isPressed: isPressed)
         let opacity = buttonBackgroundOpacity(for: action, isPressed: isPressed)
@@ -188,8 +209,8 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
     /// The border style to use for a certain action.
     open func buttonBorderStyle(for action: KeyboardAction) -> KeyboardStyle.ButtonBorder {
         switch action {
-        case .emoji, .none: return .noBorder
-        default: return .standard
+        case .emoji, .none: .noBorder
+        default: .standard
         }
     }
 
@@ -220,21 +241,10 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
     /// The font size to override for a certain action.
     func buttonFontSizeActionOverride(for action: KeyboardAction) -> CGFloat? {
         switch action {
-        case .keyboardType(let type): return buttonFontSize(for: type)
-        case .space: return 16
-        default: return nil
+        case .keyboardType(let type): buttonFontSize(for: type)
+        case .space: 16
+        default: nil
         }
-    }
-
-    /// The font size to override for a certain iPad action.
-    func buttonFontSizePadOverride(for action: KeyboardAction) -> CGFloat? {
-        guard keyboardContext.deviceType == .pad else { return nil }
-        let isLandscape = keyboardContext.interfaceOrientation.isLandscape
-        guard isLandscape else { return nil }
-        if action.isAlphabeticKeyboardTypeAction { return 22 }
-        if action.isKeyboardTypeAction(.numeric) { return 22 }
-        if action.isKeyboardTypeAction(.symbolic) { return 20 }
-        return nil
     }
 
     /// The font size to use for a certain keyboard type.
@@ -278,9 +288,25 @@ open class StandardKeyboardStyleProvider: KeyboardStyleProvider {
 // MARK: - Internal, Testable Extensions
 
 extension StandardKeyboardStyleProvider {
-
+    
     var isGregorianAlpha: Bool {
-        keyboardContext.keyboardType.isAlphabetic && keyboardContext.locale.matches(.georgian)
+        keyboardType.isAlphabetic && locale.matches(.georgian)
+    }
+    
+    var isProMaxPhone: Bool {
+        screenSize.isEqual(to: .iPhoneProMaxScreenPortrait, withTolerance: 10)
+    }
+    
+    var keyboardType: Keyboard.KeyboardType {
+        keyboardContext.keyboardType
+    }
+    
+    var locale: Locale {
+        keyboardContext.locale
+    }
+    
+    var screenSize: CGSize {
+        keyboardContext.screenSize
     }
 }
 
@@ -304,17 +330,17 @@ extension KeyboardAction {
 
     func buttonBackgroundColorForIdleState(for context: KeyboardContext) -> Color {
         if isUppercasedShiftAction { return buttonBackgroundColorForPressedState(for: context) }
-        if isSystemAction { return .standardDarkButtonBackground(for: context) }
+        if isSystemAction { return .keyboardDarkButtonBackground(for: context) }
         if isPrimaryAction { return .blue }
-        if isUppercasedShiftAction { return .standardButtonBackground(for: context) }
-        return .standardButtonBackground(for: context)
+        if isUppercasedShiftAction { return .keyboardButtonBackground(for: context) }
+        return .keyboardButtonBackground(for: context)
     }
 
     func buttonBackgroundColorForPressedState(for context: KeyboardContext) -> Color {
-        if isSystemAction { return context.hasDarkColorScheme ? .standardButtonBackground(for: context) : .white }
-        if isPrimaryAction { return context.hasDarkColorScheme ? .standardDarkButtonBackground(for: context) : .white }
-        if isUppercasedShiftAction { return .standardDarkButtonBackground(for: context) }
-        return .standardDarkButtonBackground(for: context)
+        if isSystemAction { return context.hasDarkColorScheme ? .keyboardButtonBackground(for: context) : .white }
+        if isPrimaryAction { return context.hasDarkColorScheme ? .keyboardDarkButtonBackground(for: context) : .white }
+        if isUppercasedShiftAction { return .keyboardDarkButtonBackground(for: context) }
+        return .keyboardDarkButtonBackground(for: context)
     }
 
     var buttonForegroundColorForAllStates: Color? {
@@ -333,14 +359,14 @@ extension KeyboardAction {
     }
 
     func buttonForegroundColorForIdleState(for context: KeyboardContext) -> Color {
-        let standard = Color.standardButtonForeground(for: context)
+        let standard = Color.keyboardButtonForeground(for: context)
         if isSystemAction { return standard }
         if isPrimaryAction { return .white }
         return standard
     }
 
     func buttonForegroundColorForPressedState(for context: KeyboardContext) -> Color {
-        let standard = Color.standardButtonForeground(for: context)
+        let standard = Color.keyboardButtonForeground(for: context)
         if isSystemAction { return standard }
         if isPrimaryAction { return context.hasDarkColorScheme ? .white : standard }
         return standard

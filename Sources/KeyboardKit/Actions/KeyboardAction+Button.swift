@@ -12,49 +12,56 @@ import SwiftUI
 public extension KeyboardAction {
     
     /// The action's standard button image.
-    func standardButtonImage(for context: KeyboardContext) -> Image? {
-        if let image = standardButtonTextImageReplacement(for: context) { return image }
-        
-        switch self {
-        case .backspace: return .keyboardBackspace(for: context.locale)
-        case .command: return .keyboardCommand
-        case .control: return .keyboardControl
-        case .dictation: return .keyboardDictation
-        case .dismissKeyboard: return .keyboardDismiss
-        case .image(_, let imageName, _): return Image(imageName)
-        case .keyboardType(let type): return type.standardButtonImage
-        case .moveCursorBackward: return .keyboardLeft
-        case .moveCursorForward: return .keyboardRight
-        case .nextKeyboard: return .keyboardGlobe
-        case .option: return .keyboardOption
-        case .primary(let type): return type.standardButtonImage(for: context.locale)
-        case .settings: return .keyboardSettings
-        case .shift(let currentCasing): return .keyboardShift(currentCasing)
-        case .systemImage(_, let imageName, _): return Image(systemName: imageName)
-        case .systemSettings: return .keyboardSettings
-        case .tab: return .keyboardTab
-        default: return nil
+    func standardButtonImage(
+        for context: KeyboardContext
+    ) -> Image? {
+        switch standardButtonText(for: context) {
+        case "↵", "↳": .keyboardNewline(for: context.locale)
+        default: standardButtonImageRaw(for: context)
         }
     }
     
     /// The action's standard button text.
-    func standardButtonText(for context: KeyboardContext) -> String? {
+    func standardButtonText(
+        for context: KeyboardContext
+    ) -> String? {
         switch self {
-        case .character(let char): return standardButtonText(for: char)
-        case .emoji(let emoji): return emoji.char
-        case .keyboardType(let type): return type.standardButtonText(for: context)
-        case .nextLocale: return context.locale.languageCode?.uppercased()
-        case .primary(let type): return type.standardButtonText(for: context.locale)
-        case .space: return KKL10n.space.text(for: context)
-        default: return nil
+        case .character(let char): standardButtonText(for: char)
+        case .emoji(let emoji): emoji.char
+        case .keyboardType(let type): type.standardButtonText(for: context)
+        case .nextLocale: context.locale.languageCode?.uppercased()
+        case .primary(let type): type.standardButtonText(for: context.locale)
+        case .space: KKL10n.space.text(for: context)
+        default: nil
         }
     }
+}
+
+private extension KeyboardAction {
     
-    /// The action's standard button text image replacement.
-    func standardButtonTextImageReplacement(for context: KeyboardContext) -> Image? {
-        switch standardButtonText(for: context) {
-        case "↵", "↳": return .keyboardNewline(for: context.locale)
-        default: return nil
+    func standardButtonImageRaw(
+        for context: KeyboardContext
+    ) -> Image? {
+        switch self {
+        case .backspace: .keyboardBackspace(for: context.locale)
+        case .capsLock: .keyboardShift(.capsLocked)
+        case .command: .keyboardCommand
+        case .control: .keyboardControl
+        case .dictation: .keyboardDictation
+        case .dismissKeyboard: .keyboardDismiss
+        case .image(_, let imageName, _): Image(imageName)
+        case .keyboardType(let type): type.standardButtonImage
+        case .moveCursorBackward: .keyboardArrowLeft
+        case .moveCursorForward: .keyboardArrowRight
+        case .nextKeyboard: .keyboardGlobe
+        case .option: .keyboardOption
+        case .primary(let type): type.standardButtonImage(for: context.locale)
+        case .settings: .keyboardSettings
+        case .shift(let currentCasing): .keyboardShift(currentCasing)
+        case .systemImage(_, let imageName, _): Image(systemName: imageName)
+        case .systemSettings: .keyboardSettings
+        case .tab: .keyboardTab
+        default: nil
         }
     }
 }
@@ -63,8 +70,8 @@ private extension KeyboardAction {
     
     func standardButtonText(for char: String) -> String {
         switch char {
-        case .zeroWidthSpace: return "⁞"
-        default: return char
+        case .zeroWidthSpace: "⁞"
+        default: char
         }
     }
 }

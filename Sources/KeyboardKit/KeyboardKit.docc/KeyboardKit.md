@@ -1,15 +1,17 @@
 # ``KeyboardKit``
 
-KeyboardKit helps you create custom keyboards for iOS and iPadOS, using Swift and SwiftUI.
+KeyboardKit helps you create custom keyboard extensions with Swift and SwiftUI.
 
 
 ## Overview
 
 ![KeyboardKit logo](Logo.png)
 
-KeyboardKit helps you create custom keyboards for iOS and iPadOS, using Swift and SwiftUI. It extends Apple's native keyboard APIs and provides you with more functionality.
+KeyboardKit extends Apple's native APIs and provides you with a lot more functionality. It lets you create custom keyboards that mimic native iOS keyboards with just a few lines of code.
 
-KeyboardKit lets you create keyboards that mimic native iOS keyboards in a few lines of code.
+KeyboardKit lets you customize all parts of the keyboard. You can use custom layouts, designs, views, behavior, etc. and make any key or gesture trigger any action.
+
+Keyboard extensions can use KeyboardKit to create custom keyboards, while apps can use it to check keyboard state, provide shared settings, link to System Settings, etc.
 
 
 
@@ -21,7 +23,15 @@ KeyboardKit can be installed with the Swift Package Manager:
 https://github.com/KeyboardKit/KeyboardKit.git
 ```
 
-KeyboardKit supports `iOS 14`, `macOS 11`, `tvOS 14` and `watchOS 7`, although some features are unavailable on some platforms.
+After installing KeyboardKit, make sure to link it to all targets that need it.
+
+> Important: Unlike KeyboardKit, KeyboardKit Pro is a binary target and must ONLY be added to the app target. If you add it to any other target, it may crash at runtime. 
+
+
+
+## Gettings Started
+
+See the <doc:Getting-Started> article for information on how to get started with KeyboardKit.
 
 
 
@@ -37,7 +47,7 @@ KeyboardKit supports **63** keyboard-specific ``KeyboardLocale``s:
 🇧🇷 🇷🇴 🇷🇺 🇷🇸 🇷🇸 🇸🇰 🇸🇮 🇪🇸 🇰🇪 🇸🇪 <br />
 🇹🇷 🇺🇦 🇺🇿 <br />
 
-Read more about localization in <doc:Understanding-Localization>.
+Read more about localization in <doc:Localization-Article>.
 
 
 
@@ -59,31 +69,33 @@ KeyboardKit is available under the MIT license.
 - <doc:Getting-Started>
 - <doc:Essentials>
 
-### Articles
+### Features
 
-- <doc:Understanding-Actions>
-- <doc:Understanding-AI-Support>
-- <doc:Understanding-Autocomplete>
-- <doc:Understanding-Buttons>
-- <doc:Understanding-Callouts>
-- <doc:Understanding-Colors>
-- <doc:Understanding-Device-Utilities>
-- <doc:Understanding-Dictation>
-- <doc:Understanding-Emojis>
-- <doc:Understanding-Extensions>
-- <doc:Understanding-External-Keyboards>
-- <doc:Understanding-Feedback>
-- <doc:Understanding-Gestures>
-- <doc:Understanding-Images>
-- <doc:Understanding-Layout>
-- <doc:Understanding-Localization>
-- <doc:Understanding-Navigation>
-- <doc:Understanding-Previews>
-- <doc:Understanding-Proxy-Utilities>
-- <doc:Understanding-Settings>
-- <doc:Understanding-State>
-- <doc:Understanding-Styling>
-- <doc:Understanding-Text-Routing>
+- <doc:Actions-Article>
+- <doc:AI-Article>
+- <doc:Autocomplete-Article>
+- <doc:Buttons-Article>
+- <doc:Callouts-Article>
+- <doc:Colors-Article>
+- <doc:Device-Article>
+- <doc:Dictation-Article>
+- <doc:Emojis-Article>
+- <doc:Extensions-Article>
+- <doc:External-Keyboards-Article>
+- <doc:Feedback-Article>
+- <doc:Gestures-Article>
+- <doc:Images-Article>
+- <doc:Layout-Article>
+- <doc:Localization-Article>
+- <doc:Navigation-Article>
+- <doc:Previews-Article>
+- <doc:Proxy-Utilities-Article>
+- <doc:Settings-Article>
+- <doc:State-Article>
+- <doc:Styling-Article>
+- <doc:Text-Routing-Article>
+- <doc:Themes-Article>
+- <doc:Views>
 
 ### Essentials
 
@@ -155,7 +167,7 @@ KeyboardKit is available under the MIT license.
 - ``KeyboardLayout``
 - ``KeyboardLayoutProvider``
 - ``KeyboardLayoutProviderProxy``
-- ``KeyboardLayoutRowItem``
+- ``KeyboardLayoutRowIdentifiable``
 
 - ``BaseKeyboardLayoutProvider``
 - ``StandardKeyboardLayoutProvider``
